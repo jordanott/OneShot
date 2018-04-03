@@ -1,2 +1,2 @@
-keras-oneshot/omniglot
-keras-oneshot/*.pickle
+SiameseNetwork/omniglot
+SiameseNetwork/*.pickle

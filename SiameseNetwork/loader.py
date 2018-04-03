@@ -5,7 +5,7 @@ import seaborn as sns
 import numpy.random as rng
 from sklearn.utils import shuffle
 
-PATH = "/home/jordan/Desktop/OneShot/keras-oneshot"
+PATH = "/home/jordan/Desktop/OneShot/SiameseNetwork"
 
 with open(os.path.join(PATH, "train.pickle"), "rb") as f:
     (X,c) = pickle.load(f)
