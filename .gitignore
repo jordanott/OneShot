@@ -1,2 +1,4 @@
 SiameseNetwork/omniglot
 SiameseNetwork/*.pickle
+DataGeneration/SourceFiles
+DataGeneration/Images
