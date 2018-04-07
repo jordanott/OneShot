@@ -110,7 +110,10 @@ class Siamese_Loader:
         return pairs, targets
 
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
-        for b in range(0,len(self.test_same)+len(self.test_diff),batch_size):
+        acc = 0
+        test_len = len(self.test_same) + len(self.test_diff)
+        for b in range(0,test_len,batch_size):
             inputs, targets = self.get_batch(batch_size,s='test')
             probs = model.predict(inputs)
-            print probs
+            acc += np.sum(np.rint(probs).flatten() == targets)/float(batch_size)
+        return acc/float((test_len//batch_size) + 1)

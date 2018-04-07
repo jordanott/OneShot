@@ -27,8 +27,8 @@ for i in range(1, n_iter):
     loss=siamese_net.train_on_batch(inputs,targets)
     print(loss)
     if i % evaluate_every == 0:
-        print("evaluating")
-        val_acc = loader.test_oneshot(siamese_net,N_way,n_val,verbose=True)
+        val_acc = loader.test_oneshot(siamese_net,batch_size,verbose=True)
+        print 'Batches:',i,'Validation accuracy:',val_acc
         if val_acc >= best:
             print("saving")
             siamese_net.save(weights_path)
