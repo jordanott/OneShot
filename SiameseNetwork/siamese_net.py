@@ -8,40 +8,7 @@ PATH = "/home/jordan/Desktop/OneShot/SiameseNetwork"
 
 #Instantiate the class
 loader = Siamese_Loader()
-##############################
-def concat_images(X):
-    """Concatenates a bunch of images into a big matrix for plotting purposes."""
-    nc,h,w,_ = X.shape
-    X = X.reshape(nc,h,w)
-    n = np.ceil(np.sqrt(nc)).astype("int8")
-    img = np.zeros((n*w,n*h))
-    x = 0
-    y = 0
-    for example in range(nc):
-        img[x*w:(x+1)*w,y*h:(y+1)*h] = X[example]
-        y += 1
-        if y >= n:
-            y = 0
-            x += 1
-    return img
 
-
-def plot_oneshot_task(pairs):
-    """Takes a one-shot task given to a siamese net and  """
-    print pairs[0].shape
-    fig,(ax1,ax2) = plt.subplots(2)
-    ax1.matshow(pairs[0].reshape(400,400),cmap='gray')
-    img = concat_images(pairs[1].reshape(400,400))
-    ax1.get_yaxis().set_visible(False)
-    ax1.get_xaxis().set_visible(False)
-    ax2.matshow(img,cmap='gray')
-    plt.xticks([])
-    plt.yticks([])
-    plt.show()
-#example of a one-shot learning task
-#pairs, targets = loader.make_oneshot_task(20,"train","Japanese_(katakana)")
-#plot_oneshot_task(pairs)
-##############################
 #Training loop
 print("!")
 evaluate_every = 1 # interval for evaluating on one-shot tasks
@@ -55,8 +22,8 @@ weights_path = os.path.join(PATH, "weights")
 print("training")
 for i in range(1, n_iter):
     (inputs,targets)=loader.get_batch(batch_size)
-    print inputs[0][0].shape
-    plot_oneshot_task(inputs[0])
+    print inputs[0].shape
+
     loss=siamese_net.train_on_batch(inputs,targets)
     print(loss)
     if i % evaluate_every == 0:
