@@ -13,7 +13,7 @@ loader = Siamese_Loader()
 print("!")
 evaluate_every = 1 # interval for evaluating on one-shot tasks
 loss_every=50 # interval for printing loss (iterations)
-batch_size = 32
+batch_size = 8
 n_iter = 90000
 N_way = 20 # how many classes for testing one-shot tasks>
 n_val = 250 #how mahy one-shot tasks to validate on?

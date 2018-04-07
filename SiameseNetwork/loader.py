@@ -2,7 +2,7 @@ import os
 import json
 import random
 import numpy as np
-import seaborn as sns
+#import seaborn as sns
 from sklearn.utils import shuffle
 from keras.preprocessing.image import load_img
 
@@ -48,8 +48,8 @@ class Siamese_Loader:
         self.train_diff = self.data_diff[:int(.8*len(self.data_diff))]
 
     def load_img_pair(self,pair):
-        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(250,250,1)
-        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(250,250,1)
+        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
+        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
 
         return img1,img2
 
