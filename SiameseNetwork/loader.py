@@ -50,10 +50,15 @@ class Siamese_Loader:
         self.test_same = self.data_same[int(.8*len(self.data_same)):]
         self.test_diff = self.data_diff[int(.8*len(self.data_diff)):]
 
+        print 'Training set'
+        print '\tSame:',len(self.train_same),'Diff:',len(self.train_diff)
+
+        print 'Testing set'
+        print '\tSame:',len(self.test_same),'Diff:',len(self.test_diff)
+
     def load_img_pair(self,pair):
         img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
         img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
-
         return img1,img2
 
     def get_batch(self,batch_size,s="train"):
@@ -112,7 +117,7 @@ class Siamese_Loader:
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
         acc = 0
         test_len = len(self.test_same) + len(self.test_diff)
-        for b in range(0,test_len,batch_size):
+        for b in range(0,test_len,batch_size*10):
             inputs, targets = self.get_batch(batch_size,s='test')
             probs = model.predict(inputs)
             acc += np.sum(np.rint(probs).flatten() == targets)/float(batch_size)
