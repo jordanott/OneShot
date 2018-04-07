@@ -1,5 +1,6 @@
 import os
 import json
+import random
 import numpy as np
 import seaborn as sns
 from sklearn.utils import shuffle
@@ -37,6 +38,15 @@ class Siamese_Loader:
         self.data_same = np.array(self.data_same)
         self.data_diff = np.array(self.data_diff)
 
+        self.fold_reset()
+
+    def fold_reset(self):
+        self.data_same = np.random.shuffle(self.data_same)
+        self.data_diff = np.random.shuffle(self.data_diff)
+
+        self.train_same = self.data_same[:int(.8*len(self.data_same))]
+        self.train_diff = self.data_diff[:int(.8*len(self.data_diff))]
+
     def load_img_pair(self,pair):
         img1 = np.array(load_img(pair[0]))[:,:,0].reshape(400,400,1)
         img2 = np.array(load_img(pair[1]))[:,:,0].reshape(400,400,1)
@@ -45,10 +55,17 @@ class Siamese_Loader:
 
     def get_batch(self,batch_size,s="train"):
         """Create batch of n pairs, half same class, half different class"""
-        same_class = np.random.choice(len(self.data_same),batch_size/2)
-        diff_class = np.random.choice(len(self.data_diff),batch_size/2)
-        same_class = self.data_same[same_class]
-        diff_class = self.data_diff[diff_class]
+        if s == 'train':
+            same = self.train_same
+            diff = self.train_diff
+        else:
+            same = self.test_same
+            diff = self.test_diff
+
+        same_class = np.random.choice(len(same),batch_size/2)
+        diff_class = np.random.choice(len(diff),batch_size/2)
+        same_class = same[same_class]
+        diff_class = diff[diff_class]
 
         pairs,targets = [[],[]],[]
         for pair in same_class:
@@ -62,7 +79,7 @@ class Siamese_Loader:
             pairs[1].append(img2)
             targets.append(0)
 
-        return np.array(pairs), targets
+        return [np.array(pairs[0]),np.array(pairs[1])], targets
 
     def make_oneshot_task(self,N,s="val",language=None):
         """Create pairs of test image, support set for testing N way one-shot learning. """
@@ -90,17 +107,8 @@ class Siamese_Loader:
 
         return pairs, targets
 
-    def test_oneshot(self,model,N,k,s="val",verbose=0):
-        """Test average N way oneshot learning accuracy of a siamese neural net over k one-shot tasks"""
-        n_correct = 0
-        if verbose:
-            print("Evaluating model on {} random {} way one-shot learning tasks ...".format(k,N))
-        for i in range(k):
-            inputs, targets = self.make_oneshot_task(N,s)
+    def test_oneshot(self,model,batch_size,s="val",verbose=0):
+        for b in range(0,len(self.test_same)+len(self.test_diff),batch_size):
+            inputs, targets = self.get_batch(batch_size,s='test')
             probs = model.predict(inputs)
-            if np.argmax(probs) == np.argmax(targets):
-                n_correct+=1
-        percent_correct = (100.0*n_correct / k)
-        if verbose:
-            print("Got an average of {}% {} way one-shot learning accuracy".format(percent_correct,N))
-        return percent_correct
+            print probs
