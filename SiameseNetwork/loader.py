@@ -47,6 +47,9 @@ class Siamese_Loader:
         self.train_same = self.data_same[:int(.8*len(self.data_same))]
         self.train_diff = self.data_diff[:int(.8*len(self.data_diff))]
 
+        self.test_same = self.data_same[int(.8*len(self.data_same)):]
+        self.test_diff = self.data_diff[int(.8*len(self.data_diff)):]
+
     def load_img_pair(self,pair):
         img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
         img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
@@ -91,7 +94,6 @@ class Siamese_Loader:
             if N > high - low:
                 raise ValueError("This language ({}) has less than {} letters".format(language, N))
             categories = rng.choice(range(low,high),size=(N,),replace=False)
-
         else:#if no language specified just pick a bunch of random letters
             categories = rng.choice(range(n_classes),size=(N,),replace=False)
         true_category = categories[0]
