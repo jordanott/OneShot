@@ -50,15 +50,19 @@ class Siamese_Loader:
         same_class = self.data_same[same_class]
         diff_class = self.data_diff[diff_class]
 
-        pairs,targets = [],[]
+        pairs,targets = [[],[]],[]
         for pair in same_class:
-            pairs.append(self.load_img_pair(pair))
+            img1,img2 = self.load_img_pair(pair)
+            pairs[0].append(img1)
+            pairs[1].append(img2)
             targets.append(1)
         for pair in diff_class:
-            pairs.append(self.load_img_pair(pair))
+            img1,img2 = self.load_img_pair(pair)
+            pairs[0].append(img1)
+            pairs[1].append(img2)
             targets.append(0)
 
-        return pairs, targets
+        return np.array(pairs), targets
 
     def make_oneshot_task(self,N,s="val",language=None):
         """Create pairs of test image, support set for testing N way one-shot learning. """
