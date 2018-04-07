@@ -41,15 +41,15 @@ class Siamese_Loader:
         self.fold_reset()
 
     def fold_reset(self):
-        self.data_same = np.random.shuffle(self.data_same)
-        self.data_diff = np.random.shuffle(self.data_diff)
+        np.random.shuffle(self.data_same)
+        np.random.shuffle(self.data_diff)
 
         self.train_same = self.data_same[:int(.8*len(self.data_same))]
         self.train_diff = self.data_diff[:int(.8*len(self.data_diff))]
 
     def load_img_pair(self,pair):
-        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(400,400,1)
-        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(400,400,1)
+        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(250,250,1)
+        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(250,250,1)
 
         return img1,img2
 

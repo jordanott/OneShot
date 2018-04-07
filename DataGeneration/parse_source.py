@@ -59,7 +59,7 @@ for subdir, dirs, files in os.walk(rootdir):
         if f.endswith(file_types[lang][0]):
             with open(os.path.join(subdir,f)) as lang_file:
                 lines = lang_file.readlines()
-                for patch in window(lines,min(len(lines),25)):
+                for patch in window(lines,min(len(lines),20)):
                     if len(patch) < 5:
                         continue
                     code = ''.join(patch)
