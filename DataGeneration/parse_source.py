@@ -1,7 +1,7 @@
 import os
+import json
 from text_to_image import create_img
 from itertools import islice
-
 
 file_types = {
     'Java':['.java',0],
@@ -13,7 +13,20 @@ file_types = {
     'Go':['.go',0],
     'C-Plus-Plus':['.cpp',0],
     'Scala':['.scala',0],
-    'MATLAB-Octave':['.m',0]
+    'MATLAB-Octave':['NONE',0]
+}
+
+data = {
+    'Java':[],
+    'Python':[],
+    'C-Sharp':[],
+    'Ruby':[],
+    'Javascript':[],
+    'C':[],
+    'Go':[],
+    'C-Plus-Plus':[],
+    'Scala':[],
+    #'MATLAB-Octave':[]
 }
 rootdir = 'SourceFiles'
 
@@ -52,6 +65,7 @@ for subdir, dirs, files in os.walk(rootdir):
                     code = ''.join(patch)
                     #print code.count('\n')
                     create_img(code,'Images/'+lang+'/'+str(count))
+                    data[lang].append('Images/'+lang+'/'+str(count)+'.png')
                     count += 1
                     file_types[lang][1] += 1
             #print lang,f
@@ -62,3 +76,6 @@ for k in file_types.keys():
     c += file_types[k][1]
 
 print c
+
+with open('data.json', 'w') as outfile:
+    json.dump(data, outfile)
