@@ -11,11 +11,11 @@ loader = Siamese_Loader()
 
 #Training loop
 print("!")
-evaluate_every = 100 # interval for evaluating on one-shot tasks
-loss_every=50 # interval for printing loss (iterations)
-batch_size = 8
-n_iter = 90000
-best = 9999
+evaluate_every = 1000 # interval for evaluating on one-shot tasks
+loss_every = 1000 # interval for printing loss (iterations)
+batch_size = 16
+n_iter = 1000000
+best = -1
 weights_path = os.path.join(PATH, "weights")
 print("training")
 for i in range(1, n_iter):

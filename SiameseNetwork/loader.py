@@ -57,8 +57,8 @@ class Siamese_Loader:
         print '\tSame:',len(self.test_same),'Diff:',len(self.test_diff)
 
     def load_img_pair(self,pair):
-        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(250,250,1)
-        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(250,250,1)
+        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
+        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
         return img1,img2
 
     def get_batch(self,batch_size,s="train"):
@@ -121,4 +121,4 @@ class Siamese_Loader:
             inputs, targets = self.get_batch(batch_size,s='test')
             probs = model.predict(inputs)
             acc += np.sum(np.rint(probs).flatten() == targets)/float(batch_size)
-        return 100*acc/float((test_len//batch_size*10) + 1)
+        return 100*acc/float((test_len//(batch_size*10)) + 1)
