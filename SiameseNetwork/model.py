@@ -18,7 +18,7 @@ def b_init(shape,name=None):
     return K.variable(values,name=name)
 '''
 
-input_shape = (105, 105, 1)
+input_shape = (400, 400, 1)
 left_input = Input(input_shape)
 right_input = Input(input_shape)
 #build convnet to use in each siamese 'leg'
