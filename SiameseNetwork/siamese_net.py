@@ -20,10 +20,7 @@ weights_path = os.path.join(PATH, "weights")
 print("training")
 for i in range(1, n_iter):
     (inputs,targets)=loader.get_batch(batch_size)
-    print inputs[0].shape
-
     loss=siamese_net.train_on_batch(inputs,targets)
-    print(loss)
     if i % evaluate_every == 0:
         val_acc = loader.test_oneshot(siamese_net,batch_size,verbose=True)
         print 'Batches:',i,'Validation accuracy:',val_acc

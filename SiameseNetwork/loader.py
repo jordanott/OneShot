@@ -121,4 +121,4 @@ class Siamese_Loader:
             inputs, targets = self.get_batch(batch_size,s='test')
             probs = model.predict(inputs)
             acc += np.sum(np.rint(probs).flatten() == targets)/float(batch_size)
-        return acc/float((test_len//batch_size) + 1)
+        return 100*acc/float((test_len//batch_size*10) + 1)
