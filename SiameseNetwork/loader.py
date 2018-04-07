@@ -57,8 +57,8 @@ class Siamese_Loader:
         print '\tSame:',len(self.test_same),'Diff:',len(self.test_diff)
 
     def load_img_pair(self,pair):
-        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
-        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
+        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(250,250,1)
+        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(250,250,1)
         return img1,img2
 
     def get_batch(self,batch_size,s="train"):
