@@ -1,70 +1,64 @@
 import os
-import pickle
+import json
 import numpy as np
 import seaborn as sns
-import numpy.random as rng
 from sklearn.utils import shuffle
+from keras.preprocessing.image import load_img
 
-PATH = "/home/jordan/Desktop/OneShot/SiameseNetwork"
-
-with open(os.path.join(PATH, "train.pickle"), "rb") as f:
-    (X,c) = pickle.load(f)
-
-with open(os.path.join(PATH, "val.pickle"), "rb") as f:
-    (Xval,cval) = pickle.load(f)
-
-print("training alphabets")
-print(c.keys())
-print("validation alphabets:")
-print(cval.keys())
-###############################
+DATA_DIR = '../DataGeneration/'
 class Siamese_Loader:
     """For loading batches and testing tasks to a siamese net"""
-    def __init__(self, data_subsets = ["train", "val"]):
-        self.data = {}
-        self.categories = {}
+    def __init__(self):
         self.info = {}
+        self.data_same = []
+        self.data_diff = []
 
-        for name in data_subsets:
-            file_path = os.path.join(PATH, name + ".pickle")
-            print("loading data from {}".format(file_path))
-            with open(file_path,"rb") as f:
-                (X,c) = pickle.load(f)
-                self.data[name] = X
-                self.categories[name] = c
+        file_path = '../DataGeneration/data.json'
+        print("loading data from {}".format(file_path))
+        with open(file_path,"rb") as f:
+            data = json.load(f)
+
+        for i_key in data:
+            # initialize language store
+            for j_key in data:
+                # generate images to sample
+                m = len(data[i_key])
+                i_index = np.random.randint(0,m,size=(70))
+                m = len(data[j_key])
+                j_index = np.random.randint(0,m,size=(70))
+                # iterate through sampled images and pair samples
+                for i in i_index:
+                    for j in j_index:
+                        label = 0 if i_key != j_key else 1
+                        if label:
+                            self.data_same.append([DATA_DIR+data[i_key][i], DATA_DIR+data[j_key][j]])
+                        else:
+                            self.data_diff.append([DATA_DIR+data[i_key][i], DATA_DIR+data[j_key][j]])
+        self.data_same = np.array(self.data_same)
+        self.data_diff = np.array(self.data_diff)
+
+    def load_img_pair(self,pair):
+        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(400,400,1)
+        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(400,400,1)
+
+        return img1,img2
 
     def get_batch(self,batch_size,s="train"):
         """Create batch of n pairs, half same class, half different class"""
-        X=self.data[s]
-        n_classes, n_examples, w, h = X.shape
+        same_class = np.random.choice(len(self.data_same),batch_size/2)
+        diff_class = np.random.choice(len(self.data_diff),batch_size/2)
+        same_class = self.data_same[same_class]
+        diff_class = self.data_diff[diff_class]
 
-        #randomly sample several classes to use in the batch
-        categories = rng.choice(n_classes,size=(batch_size,),replace=False)
-        #initialize 2 empty arrays for the input image batch
-        pairs=[np.zeros((batch_size, h, w,1)) for i in range(2)]
-        #initialize vector for the targets, and make one half of it '1's, so 2nd half of batch has same class
-        targets=np.zeros((batch_size,))
-        targets[batch_size//2:] = 1
-        for i in range(batch_size):
-            category = categories[i]
-            idx_1 = rng.randint(0, n_examples)
-            pairs[0][i,:,:,:] = X[category, idx_1].reshape(w, h, 1)
-            idx_2 = rng.randint(0, n_examples)
-            #pick images of same class for 1st half, different for 2nd
-            if i >= batch_size // 2:
-                category_2 = category
-            else:
-                #add a random number to the category modulo n classes to ensure 2nd image has
-                # ..different category
-                category_2 = (category + rng.randint(1,n_classes)) % n_classes
-            pairs[1][i,:,:,:] = X[category_2,idx_2].reshape(w, h,1)
+        pairs,targets = [],[]
+        for pair in same_class:
+            pairs.append(self.load_img_pair(pair))
+            targets.append(1)
+        for pair in diff_class:
+            pairs.append(self.load_img_pair(pair))
+            targets.append(0)
+
         return pairs, targets
-
-    def generate(self, batch_size, s="train"):
-        """a generator for batches, so model.fit_generator can be used. """
-        while True:
-            pairs, targets = self.get_batch(batch_size,s)
-            yield (pairs, targets)
 
     def make_oneshot_task(self,N,s="val",language=None):
         """Create pairs of test image, support set for testing N way one-shot learning. """
@@ -106,6 +100,3 @@ class Siamese_Loader:
         if verbose:
             print("Got an average of {}% {} way one-shot learning accuracy".format(percent_correct,N))
         return percent_correct
-
-    def train(self, model, epochs, verbosity):
-        model.fit_generator(self.generate(batch_size))
