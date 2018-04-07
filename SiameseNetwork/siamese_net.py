@@ -28,9 +28,10 @@ def concat_images(X):
 
 def plot_oneshot_task(pairs):
     """Takes a one-shot task given to a siamese net and  """
+    print pairs[0].shape
     fig,(ax1,ax2) = plt.subplots(2)
-    ax1.matshow(pairs[0][0].reshape(105,105),cmap='gray')
-    img = concat_images(pairs[1])
+    ax1.matshow(pairs[0].reshape(400,400),cmap='gray')
+    img = concat_images(pairs[1].reshape(400,400))
     ax1.get_yaxis().set_visible(False)
     ax1.get_xaxis().set_visible(False)
     ax2.matshow(img,cmap='gray')
@@ -38,8 +39,8 @@ def plot_oneshot_task(pairs):
     plt.yticks([])
     plt.show()
 #example of a one-shot learning task
-pairs, targets = loader.make_oneshot_task(20,"train","Japanese_(katakana)")
-plot_oneshot_task(pairs)
+#pairs, targets = loader.make_oneshot_task(20,"train","Japanese_(katakana)")
+#plot_oneshot_task(pairs)
 ##############################
 #Training loop
 print("!")
@@ -54,6 +55,8 @@ weights_path = os.path.join(PATH, "weights")
 print("training")
 for i in range(1, n_iter):
     (inputs,targets)=loader.get_batch(batch_size)
+    print inputs[0][0].shape
+    plot_oneshot_task(inputs[0])
     loss=siamese_net.train_on_batch(inputs,targets)
     print(loss)
     if i % evaluate_every == 0:
