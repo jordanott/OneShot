@@ -86,11 +86,11 @@ class Siamese_Loader:
             pairs[0].append(img1)
             pairs[1].append(img2)
             targets.append(0)
-
+        
         if s != 'test':
             return [np.array(pairs[0]),np.array(pairs[1])], targets
         else:
-            return [np.array(pairs[0]),np.array(pairs[1])], targets, same_class + diff_class
+            return [np.array(pairs[0]),np.array(pairs[1])], targets, np.concatenate((same_class,diff_class),axis=0)
 
     def make_oneshot_task(self,N,s="val",language=None):
         """Create pairs of test image, support set for testing N way one-shot learning. """
