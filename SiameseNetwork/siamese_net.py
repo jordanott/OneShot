@@ -4,8 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-PATH = "/home/jordan/Desktop/OneShot/SiameseNetwork"
-
 #Instantiate the class
 loader = Siamese_Loader()
 
@@ -16,7 +14,7 @@ loss_every = 1000 # interval for printing loss (iterations)
 batch_size = 16
 n_iter = 1000000
 best = -1
-weights_path = os.path.join(PATH, "weights")
+weights_path = "weights.h5"
 print("training")
 for i in range(1, n_iter):
     (inputs,targets)=loader.get_batch(batch_size)

@@ -59,7 +59,7 @@ class Siamese_Loader:
     def load_img_pair(self,pair):
         img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
         img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
-        return img1,img2
+        return img1/255.0,img2/255.0
 
     def get_batch(self,batch_size,s="train"):
         """Create batch of n pairs, half same class, half different class"""
