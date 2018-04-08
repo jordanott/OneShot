@@ -87,7 +87,10 @@ class Siamese_Loader:
             pairs[1].append(img2)
             targets.append(0)
 
-        return [np.array(pairs[0]),np.array(pairs[1])], targets
+        if s != 'test':
+            return [np.array(pairs[0]),np.array(pairs[1])], targets
+        else:
+            return [np.array(pairs[0]),np.array(pairs[1])], targets, same_class + diff_class
 
     def make_oneshot_task(self,N,s="val",language=None):
         """Create pairs of test image, support set for testing N way one-shot learning. """
@@ -118,7 +121,7 @@ class Siamese_Loader:
         acc = 0
         test_len = len(self.test_same) + len(self.test_diff)
         for b in range(0,test_len,batch_size*10):
-            inputs, targets = self.get_batch(batch_size,s='test')
+            inputs, targets = self.get_batch(batch_size,s='validate')
             probs = model.predict(inputs)
             acc += np.sum(np.rint(probs).flatten() == targets)/float(batch_size)
         return 100*acc/float((test_len//(batch_size*10)) + 1)
