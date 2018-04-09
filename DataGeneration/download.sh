@@ -7,4 +7,9 @@ git clone https://github.com/TheAlgorithms/C.git SourceFiles/C
 git clone https://github.com/TheAlgorithms/Go.git SourceFiles/Go
 git clone https://github.com/TheAlgorithms/C-Plus-Plus.git SourceFiles/C-Plus-Plus
 git clone https://github.com/TheAlgorithms/Scala.git SourceFiles/Scala
-git clone https://github.com/TheAlgorithms/MATLAB-Octave.git SourceFiles/MATLAB-Octave
+git clone https://github.com/aludnam/MATLAB.git SourceFiles/MATLAB
+git clone https://github.com/dmpe/R.git SourceFiles/R
+git clone https://github.com/twbs/bootstrap.git SourceFiles/CSS
+git clone https://github.com/dompdf/dompdf.git SourceFiles/PHP
+git clone https://github.com/kraih/mojo.git SourceFiles/Perl
+git clone https://github.com/sadsfae/misc-scripts.git SourceFiles/Shell

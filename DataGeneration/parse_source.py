@@ -13,7 +13,13 @@ file_types = {
     'Go':['.go',0],
     'C-Plus-Plus':['.cpp',0],
     'Scala':['.scala',0],
-    'MATLAB-Octave':['NONE',0]
+    'MATLAB':['.m',0],
+    'R':['.R',0],
+    'CSS':['css',0],
+    'PHP':['.php',0],
+    'Perl':['.pm',0],
+    'Shell':['.sh',0]
+
 }
 
 data = {
@@ -26,7 +32,13 @@ data = {
     'Go':[],
     'C-Plus-Plus':[],
     'Scala':[],
-    #'MATLAB-Octave':[]
+    'MATLAB':[],
+    'R':[],
+    'CSS':[],
+    'PHP':[],
+    'Perl':[],
+    'Shell':[]
+
 }
 rootdir = 'SourceFiles'
 
@@ -59,7 +71,7 @@ for subdir, dirs, files in os.walk(rootdir):
         if f.endswith(file_types[lang][0]):
             with open(os.path.join(subdir,f)) as lang_file:
                 lines = lang_file.readlines()
-                for patch in window(lines,min(len(lines),20)):
+                for patch in window(lines,min(len(lines),15)):
                     if len(patch) < 5:
                         continue
                     code = ''.join(patch)
