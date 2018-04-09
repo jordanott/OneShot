@@ -5,16 +5,16 @@ import numpy as np
 import json
 import os
 
-PATIENCE = 15
+PATIENCE = 20
 batch_size = 16
 n_iter = 1000000
 best = -1
 
 with open('latex.txt','w') as tex:
-    line = 'Language Samples & Train Same & Train Diff & Test Same & Test Diff & Val Acc \\\\\n'
+    line = 'Language Samples & Train Same & Train Diff & Test Same & Test Diff & Val Acc & Batches \\\\\n'
     tex.write(line)
 
-for lang_samples in range(1,72,10):
+for lang_samples in range(1,132,10):
     PATH = str(lang_samples)+'/'
     os.mkdir(PATH)
     evaluate_every = lang_samples*10
@@ -31,7 +31,7 @@ for lang_samples in range(1,72,10):
     for i in range(1, n_iter):
         (inputs,targets) = train_loader.get_batch(batch_size)
         history = siamese_net.fit(inputs,targets,verbose=0)
-        
+
         tmp_train_acc.append(history.history['acc'][-1])
 
         if i % evaluate_every == 0:
@@ -57,8 +57,8 @@ for lang_samples in range(1,72,10):
         json.dump(monitor, outfile)
 
     with open('latex.txt','a') as tex:
-        line = '{} & {} & {} & {} & {} & {} \\\\\n'.format(
+        line = '{} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
             lang_samples,len(train_loader.train_same),len(train_loader.train_diff),
-            len(train_loader.test_same),len(train_loader.test_diff),np.max(monitor['val_acc'])
+            len(train_loader.test_same),len(train_loader.test_diff),np.max(monitor['val_acc']),i
         )
         tex.write(line)
