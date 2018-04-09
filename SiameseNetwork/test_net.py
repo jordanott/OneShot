@@ -5,6 +5,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
 
+n_itr = 5
 batch_size = 16
 
 def plot(img1,img2,lang,pred,target,i):
@@ -27,16 +28,19 @@ def plot(img1,img2,lang,pred,target,i):
 loader = Siamese_Loader()
 siamese_net.load_weights('weights.h5')
 
-inputs,targets,language_types = loader.get_batch(batch_size,s='test')
+counter = 0
+for itr in range(n_itr):
+    inputs,targets,language_types = loader.get_batch(batch_size,s='test')
 
-predictions = siamese_net.predict(inputs)
+    predictions = siamese_net.predict(inputs)
 
-print 'Accuracy:',np.sum(np.rint(predictions).flatten() == targets)/float(batch_size)
+    print 'Accuracy:',np.sum(np.rint(predictions).flatten() == targets)/float(batch_size)
 
-for i in range(0,batch_size):
-    pred = predictions[i][0]
-    img1,img2 = inputs[0][i],inputs[1][i]
-    lang = language_types[i]
-    target = targets[i]
+    for i in range(0,batch_size):
+        pred = predictions[i][0]
+        img1,img2 = inputs[0][i],inputs[1][i]
+        lang = language_types[i]
+        target = targets[i]
 
-    plot(img1,img2,lang,pred,target,i)
+        plot(img1,img2,lang,pred,target,counter)
+        counter += 1
