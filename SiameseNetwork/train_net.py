@@ -11,9 +11,8 @@ n_iter = 1000000
 best = -1
 
 with open('latex.txt','w') as tex:
-
     line = 'Language Samples & Train Same & Train Diff & Test Same & Test Diff & Val Acc \\\\\n'
-    text.write(line)
+    tex.write(line)
 
 for lang_samples in range(1,72,10):
     PATH = str(lang_samples)+'/'
@@ -21,21 +20,23 @@ for lang_samples in range(1,72,10):
     evaluate_every = lang_samples*10
     weights_path = PATH + 'weights.h5'
 
-    loader = Siamese_Loader(lang_samples)
+    train_loader = Siamese_Loader(lang_samples)
+    test_loader = Siamese_Loader(lang_samples)
     monitor = {
-        'train_acc' = [],
-        'val_acc' = []
+        'train_acc': [],
+        'val_acc': []
     }
     tmp_train_acc = []
 
     for i in range(1, n_iter):
-        (inputs,targets) = loader.get_batch(batch_size)
-        history = siamese_net.fit(inputs,targets)
+        (inputs,targets) = train_loader.get_batch(batch_size)
+        history = siamese_net.fit(inputs,targets,verbose=0)
+        
         tmp_train_acc.append(history.history['acc'][-1])
 
         if i % evaluate_every == 0:
-            val_acc = loader.test_oneshot(siamese_net,batch_size,verbose=True)
-            print 'Batches:',i,'Validation accuracy:',val_acc
+            val_acc = test_loader.test_oneshot(siamese_net,batch_size,verbose=True)
+            print 'Samples',lang_samples,'Batches:',i,'Validation accuracy:',val_acc
             monitor['val_acc'].append(val_acc)
             if val_acc >= best:
                 print("saving")
@@ -52,12 +53,12 @@ for lang_samples in range(1,72,10):
                 if monitor['val_acc'][-PATIENCE] == np.max(monitor['val_acc'][-PATIENCE:]):
                     break
 
-    with open(PATH+'data.txt', 'w') as outfile:
-        json.dump(data, outfile)
+    with open(PATH+'data.json', 'w') as outfile:
+        json.dump(monitor, outfile)
 
-    with open('latex.txt','w') as tex:
+    with open('latex.txt','a') as tex:
         line = '{} & {} & {} & {} & {} & {} \\\\\n'.format(
-            lang_samples,len(loader.train_same),len(loader.train_diff),
-            len(loader.test_same),len(loader.test_diff),np.max(monitor['val_acc'])
+            lang_samples,len(train_loader.train_same),len(train_loader.train_diff),
+            len(train_loader.test_same),len(train_loader.test_diff),np.max(monitor['val_acc'])
         )
-        text.write(line)
+        tex.write(line)
