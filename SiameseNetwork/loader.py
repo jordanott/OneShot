@@ -9,7 +9,7 @@ from keras.preprocessing.image import load_img
 DATA_DIR = '../DataGeneration/'
 class Siamese_Loader:
     """For loading batches and testing tasks to a siamese net"""
-    def __init__(self):
+    def __init__(self,lang_samples):
         self.info = {}
         self.data_same = []
         self.data_diff = []
@@ -20,13 +20,12 @@ class Siamese_Loader:
             data = json.load(f)
 
         for i_key in data:
-            # initialize language store
             for j_key in data:
                 # generate images to sample
                 m = len(data[i_key])
-                i_index = np.random.randint(0,m,size=(70))
+                i_index = np.random.randint(0,m,size=(lang_samples))
                 m = len(data[j_key])
-                j_index = np.random.randint(0,m,size=(70))
+                j_index = np.random.randint(0,m,size=(lang_samples))
                 # iterate through sampled images and pair samples
                 for i in i_index:
                     for j in j_index:
@@ -86,36 +85,11 @@ class Siamese_Loader:
             pairs[0].append(img1)
             pairs[1].append(img2)
             targets.append(0)
-        
+
         if s != 'test':
             return [np.array(pairs[0]),np.array(pairs[1])], targets
         else:
             return [np.array(pairs[0]),np.array(pairs[1])], targets, np.concatenate((same_class,diff_class),axis=0)
-
-    def make_oneshot_task(self,N,s="val",language=None):
-        """Create pairs of test image, support set for testing N way one-shot learning. """
-        X=self.data[s]
-        n_classes, n_examples, w, h = X.shape
-        indices = rng.randint(0,n_examples,size=(N,))
-        if language is not None:
-            low, high = self.categories[s][language]
-            if N > high - low:
-                raise ValueError("This language ({}) has less than {} letters".format(language, N))
-            categories = rng.choice(range(low,high),size=(N,),replace=False)
-        else:#if no language specified just pick a bunch of random letters
-            categories = rng.choice(range(n_classes),size=(N,),replace=False)
-        true_category = categories[0]
-        ex1, ex2 = rng.choice(n_examples,replace=False,size=(2,))
-        test_image = np.asarray([X[true_category,ex1,:,:]]*N).reshape(N, w, h,1)
-        support_set = X[categories,indices,:,:]
-        support_set[0,:,:] = X[true_category,ex2]
-        support_set = support_set.reshape(N, w, h,1)
-        targets = np.zeros((N,))
-        targets[0] = 1
-        targets, test_image, support_set = shuffle(targets, test_image, support_set)
-        pairs = [test_image,support_set]
-
-        return pairs, targets
 
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
         acc = 0
