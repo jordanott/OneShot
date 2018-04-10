@@ -1,5 +1,5 @@
 from loader import Siamese_Loader
-from model import siamese_net
+from model import net
 import matplotlib.pyplot as plt
 import numpy as np
 import json
@@ -27,7 +27,7 @@ for lang_samples in range(1,132,10):
         'val_acc': []
     }
     tmp_train_acc = []
-
+    siamese_net = net()
     for i in range(1, n_iter):
         (inputs,targets) = train_loader.get_batch(batch_size)
         history = siamese_net.fit(inputs,targets,verbose=0)
