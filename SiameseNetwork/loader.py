@@ -20,7 +20,7 @@ class Siamese_Loader:
             data = json.load(f)
 
         for i_key in data:
-            self.languages[i_key] = data[i_key]
+            self.languages[i_key] = []
             for j_key in data:
                 # generate images to sample
                 m = len(data[i_key])
@@ -28,7 +28,12 @@ class Siamese_Loader:
                 m = len(data[j_key])
                 j_index = np.random.randint(0,m,size=(lang_samples))
                 # iterate through sampled images and pair samples
+                counter = 1
                 for i in i_index:
+                    if (counter % 10) == 0:
+                        self.languages[i_key].append(DATA_DIR+data[i_key][i])
+                        continue
+                    counter += 1
                     for j in j_index:
                         label = 0 if i_key != j_key else 1
                         if label:
@@ -44,31 +49,25 @@ class Siamese_Loader:
         np.random.shuffle(self.data_same)
         np.random.shuffle(self.data_diff)
 
-        self.train_same = self.data_same[:int(.8*len(self.data_same))]
-        self.train_diff = self.data_diff[:int(.8*len(self.data_diff))]
-
-        self.test_same = self.data_same[int(.8*len(self.data_same)):]
-        self.test_diff = self.data_diff[int(.8*len(self.data_diff)):]
+        self.len_test = 0
+        for k in self.languages:
+            self.len_test += len(self.languages[k])
 
         print 'Training set'
-        print '\tSame:',len(self.train_same),'Diff:',len(self.train_diff)
+        print '\tSame:',len(self.data_same),'Diff:',len(self.data_diff)
 
         print 'Testing set'
-        print '\tSame:',len(self.test_same),'Diff:',len(self.test_diff)
+        print '\tLength:',self.len_test
 
     def load_img_pair(self,pair):
         img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
         img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
         return img1/255.0,img2/255.0
 
-    def get_batch(self,batch_size,s="train"):
+    def get_batch(self,batch_size):
         """Create batch of n pairs, half same class, half different class"""
-        if s == 'train':
-            same = self.train_same
-            diff = self.train_diff
-        else:
-            same = self.test_same
-            diff = self.test_diff
+        same = self.data_same
+        diff = self.data_diff
 
         same_class = np.random.choice(len(same),batch_size/2)
         diff_class = np.random.choice(len(diff),batch_size/2)
@@ -107,11 +106,8 @@ class Siamese_Loader:
 
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
         correct = 0
-        test_len = len(self.test_same) + len(self.test_diff)
-        total = 0
-        for b in range(0,test_len,batch_size*10):
+        for b in range(0,1000):
             inputs, targets = self.test_batch()
             probs = model.predict(inputs)
             correct += 1 if np.argmax(probs) == np.argmax(targets) else 0
-            total += 1
-        return correct/float(total)
+        return correct/1000.0

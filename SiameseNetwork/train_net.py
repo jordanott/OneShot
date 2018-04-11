@@ -19,11 +19,10 @@ siamese_net.save_weights('weights.h5')
 for lang_samples in range(1,132,10):
     PATH = str(lang_samples)+'/'
     os.mkdir(PATH)
-    evaluate_every = min(lang_samples*10,100)
+    evaluate_every = 100
     weights_path = PATH + 'weights.h5'
 
     train_loader = Siamese_Loader(lang_samples)
-    test_loader = Siamese_Loader(lang_samples)
     monitor = {
         'train_acc': [],
         'val_acc': []
@@ -37,7 +36,7 @@ for lang_samples in range(1,132,10):
         tmp_train_acc.append(history.history['acc'][-1])
 
         if i % evaluate_every == 0:
-            val_acc = test_loader.test_oneshot(siamese_net,batch_size,verbose=True)
+            val_acc = train_loader.test_oneshot(siamese_net,batch_size,verbose=True)
             print 'Samples',lang_samples,'Batches:',i,'Validation accuracy:',val_acc
             monitor['val_acc'].append(val_acc)
             if val_acc >= best:
@@ -59,8 +58,8 @@ for lang_samples in range(1,132,10):
         json.dump(monitor, outfile)
 
     with open('latex.txt','a') as tex:
-        line = '{} & {} & {} & {} & {} & {} & {} \\\\\n'.format(
-            lang_samples,len(train_loader.train_same),len(train_loader.train_diff),
-            len(train_loader.test_same),len(train_loader.test_diff),np.max(monitor['val_acc']),i
+        line = '{} & {} & {} & {} & {} & {} \\\\\n'.format(
+            lang_samples,len(train_loader.data_same),len(train_loader.data_diff),
+            len(train_loader.len_test),np.max(monitor['val_acc']),i
         )
         tex.write(line)
