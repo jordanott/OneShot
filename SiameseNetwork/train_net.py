@@ -13,11 +13,13 @@ best = -1
 with open('latex.txt','w') as tex:
     line = 'Language Samples & Train Same & Train Diff & Test Same & Test Diff & Val Acc & Batches \\\\\n'
     tex.write(line)
+siamese_net = net()
+siamese_net.save_weights('weights.h5')
 
 for lang_samples in range(1,132,10):
     PATH = str(lang_samples)+'/'
     os.mkdir(PATH)
-    evaluate_every = lang_samples*10
+    evaluate_every = min(lang_samples*10,100)
     weights_path = PATH + 'weights.h5'
 
     train_loader = Siamese_Loader(lang_samples)
@@ -27,7 +29,7 @@ for lang_samples in range(1,132,10):
         'val_acc': []
     }
     tmp_train_acc = []
-    siamese_net = net()
+    siamese_net.load_weights('weights.h5')
     for i in range(1, n_iter):
         (inputs,targets) = train_loader.get_batch(batch_size)
         history = siamese_net.fit(inputs,targets,verbose=0)

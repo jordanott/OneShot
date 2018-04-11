@@ -98,7 +98,7 @@ class Siamese_Loader:
         pairs, targets = [[],[]], []
         for lang_key in self.languages.keys():
             other = np.random.choice(self.languages[lang_key])
-            img1, img2 = self.load_img_pair([test_img, other])
+            img1, img2 = self.load_img_pair([DATA_DIR+test_img, DATA_DIR+other])
             pairs[0].append(img1)
             pairs[1].append(img2)
             l = 1 if lang == lang_key else 0
@@ -110,8 +110,8 @@ class Siamese_Loader:
         test_len = len(self.test_same) + len(self.test_diff)
         total = 0
         for b in range(0,test_len,batch_size*10):
-            inputs, targets = self.test_batch(batch_size)
+            inputs, targets = self.test_batch()
             probs = model.predict(inputs)
-            correct += 1 if np.argmax(probs) == np.argmax(targets)
+            correct += 1 if np.argmax(probs) == np.argmax(targets) else 0
             total += 1
-        return acc/float(total)
+        return correct/float(total)
