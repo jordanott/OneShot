@@ -16,8 +16,8 @@ with open('latex.txt','w') as tex:
 siamese_net = net()
 siamese_net.save_weights('weights.h5')
 
-for lang_samples in range(1,132,10):
-    PATH = str(lang_samples)+'/'
+for lang_samples in range(1,1002,50):
+    PATH = 'Results/'+str(lang_samples)+'/'
     os.mkdir(PATH)
     evaluate_every = 100
     weights_path = PATH + 'weights.h5'

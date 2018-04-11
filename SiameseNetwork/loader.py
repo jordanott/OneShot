@@ -9,7 +9,7 @@ from keras.preprocessing.image import load_img
 DATA_DIR = '../DataGeneration/'
 class Siamese_Loader:
     """For loading batches and testing tasks to a siamese net"""
-    def __init__(self,lang_samples):
+    def __init__(self,lang_samples,test_samples_per_lang=100):
         self.languages = {}
         self.data_same = []
         self.data_diff = []
@@ -21,6 +21,11 @@ class Siamese_Loader:
 
         for i_key in data:
             self.languages[i_key] = []
+            m = len(data[i_key])
+            test_index = np.random.randint(0,m,size=(lang_samples))
+            for t in test_index:
+                self.languages.append(DATA_DIR+data[i_key][t])
+
             for j_key in data:
                 # generate images to sample
                 m = len(data[i_key])
@@ -28,12 +33,7 @@ class Siamese_Loader:
                 m = len(data[j_key])
                 j_index = np.random.randint(0,m,size=(lang_samples))
                 # iterate through sampled images and pair samples
-                counter = 1
-                for i in i_index:
-                    if (counter % 10) == 0:
-                        self.languages[i_key].append(DATA_DIR+data[i_key][i])
-                        continue
-                    counter += 1
+                for i in i_index[:lang_samples]:
                     for j in j_index:
                         label = 0 if i_key != j_key else 1
                         if label:
@@ -106,8 +106,8 @@ class Siamese_Loader:
 
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
         correct = 0
-        for b in range(0,1000):
+        for b in range(0,self.len_test):
             inputs, targets = self.test_batch()
             probs = model.predict(inputs)
             correct += 1 if np.argmax(probs) == np.argmax(targets) else 0
-        return correct/1000.0
+        return correct/float(self.len_test)
