@@ -10,7 +10,7 @@ DATA_DIR = '../DataGeneration/'
 class Siamese_Loader:
     """For loading batches and testing tasks to a siamese net"""
     def __init__(self,lang_samples):
-        self.info = {}
+        self.languages = {}
         self.data_same = []
         self.data_diff = []
 
@@ -20,6 +20,7 @@ class Siamese_Loader:
             data = json.load(f)
 
         for i_key in data:
+            self.languages[i_key] = data[i_key]
             for j_key in data:
                 # generate images to sample
                 m = len(data[i_key])
@@ -91,11 +92,26 @@ class Siamese_Loader:
         else:
             return [np.array(pairs[0]),np.array(pairs[1])], targets, np.concatenate((same_class,diff_class),axis=0)
 
+    def test_batch(self):
+        lang = np.random.choice(self.languages.keys())
+        test_img = np.random.choice(self.languages[lang])
+        pairs, targets = [[],[]], []
+        for lang_key in self.languages.keys():
+            other = np.random.choice(self.languages[lang_key])
+            img1, img2 = self.load_img_pair([test_img, other])
+            pairs[0].append(img1)
+            pairs[1].append(img2)
+            l = 1 if lang == lang_key else 0
+            targets.append(l)
+        return [np.array(pairs[0]),np.array(pairs[1])], targets
+
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
-        acc = 0
+        correct = 0
         test_len = len(self.test_same) + len(self.test_diff)
+        total = 0
         for b in range(0,test_len,batch_size*10):
-            inputs, targets = self.get_batch(batch_size,s='validate')
+            inputs, targets = self.test_batch(batch_size)
             probs = model.predict(inputs)
-            acc += np.sum(np.rint(probs).flatten() == targets)/float(batch_size)
-        return 100*acc/float((test_len//(batch_size*10)) + 1)
+            correct += 1 if np.argmax(probs) == np.argmax(targets)
+            total += 1
+        return acc/float(total)
