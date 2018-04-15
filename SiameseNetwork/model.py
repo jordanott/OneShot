@@ -1,4 +1,4 @@
-from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D
+from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D,Dropout
 from keras.models import Model, Sequential
 from keras.regularizers import l2
 from keras import backend as K
@@ -33,8 +33,9 @@ def net():
     convnet.add(MaxPooling2D())
     convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
     convnet.add(Flatten())
+    convnet.add(Dropout(.5))
     convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3)))
-
+    convnet.add(Dropout(.5))
     #call the convnet Sequential model on each of the input tensors so params will be shared
     encoded_l = convnet(left_input)
     encoded_r = convnet(right_input)
