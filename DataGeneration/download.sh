@@ -19,6 +19,7 @@ git clone https://github.com/aludnam/MATLAB.git SourceFiles/MATLAB
 git clone https://github.com/dmpe/R.git SourceFiles/R
 git clone https://github.com/datadolphyn/R.git SourceFiles/R/one
 git clone https://github.com/twbs/bootstrap.git SourceFiles/CSS
+git clone https://github.com/daneden/animate.css.git SourceFiles/CSS/one
 git clone https://github.com/dompdf/dompdf.git SourceFiles/PHP
 git clone https://github.com/PHPMailer/PHPMailer.git SourceFiles/PHP/one
 git clone https://github.com/kraih/mojo.git SourceFiles/Perl
