@@ -3,6 +3,9 @@ import json
 from text_to_image import create_img
 from itertools import islice
 
+if not os.path.exists('Images/'):
+    os.mkdir('Images/')
+
 file_types = {
     'Java':['.java',0],
     'Python':['.py',0],
