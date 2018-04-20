@@ -5,14 +5,14 @@ import numpy as np
 import json
 import os
 
-SIAMESE = False
+SIAMESE = True
 PATIENCE = 200
 batch_size = 16
 n_iter = 1000000
 best = -1
 
 if SIAMESE:
-    with open('latex.txt','w') as tex:
+    with open('s_latex.txt','w') as tex:
         line = 'Language Samples & Train Same & Train Diff & Test & Val Acc & Batches \\\\\n'
         tex.write(line)
     net = s_net()
@@ -20,7 +20,7 @@ if SIAMESE:
     weights = 's_weights.h5'
     results = 'S_Results/'
 else:
-    with open('latex.txt','w') as tex:
+    with open('c_latex.txt','w') as tex:
         line = 'Language Samples & Train & Test & Val Acc & Batches \\\\\n'
         tex.write(line)
     net = c_net()
@@ -33,7 +33,8 @@ if not os.path.exists(results):
 
 for lang_samples in range(1,1002,50):
     PATH = results+str(lang_samples)+'/'
-    os.mkdir(PATH)
+    if not os.path.exists(PATH):    
+        os.mkdir(PATH)
     evaluate_every = 100
     weights_path = PATH + weights
 

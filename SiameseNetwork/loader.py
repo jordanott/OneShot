@@ -138,10 +138,10 @@ class Conv_Loader:
             lang_counter += 1
 
         self.x_train = np.array(self.x_train)
-        self.y_train = keras.utils.to_categorical(self.y_train, lang_counter+1)
+        self.y_train = keras.utils.to_categorical(self.y_train, lang_counter)
 
         self.x_test = np.array(self.x_test)
-        self.y_test = keras.utils.to_categorical(self.y_test, lang_counter+1)
+        self.y_test = keras.utils.to_categorical(self.y_test, lang_counter)
 
         self.fold_reset()
 
@@ -174,7 +174,7 @@ class Conv_Loader:
 
         data,targets = [],[]
         for loc,lang in zip(locations,languages):
-            img1 = self.load_img(location)
+            img1 = self.load_img(loc)
             data.append(img1)
             targets.append(lang)
 
