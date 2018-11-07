@@ -94,23 +94,44 @@ class Siamese_Loader:
 
         return [np.array(pairs[0]),np.array(pairs[1])], targets
 
-    def test_batch(self):
+    def pick_language(self, not_this_lang):
         lang = np.random.choice(self.languages.keys())
-        test_img = np.random.choice(self.languages[lang])
+        if lang == not_this_lang:
+            return pick_language(not_this_lang)
+        return lang
+
+    def test_batch(self,batch_size):
         pairs, targets = [[],[]], []
-        for lang_key in self.languages.keys():
-            other = np.random.choice(self.languages[lang_key])
+        # same language
+        for i in range(len(batch_size) / 2):
+            # chose a language
+            lang = np.random.choice(self.languages.keys())
+            # chose two images from the same language
+            test_img = np.random.choice(self.languages[lang])
+            other = np.random.choice(self.languages[lang])
+
             img1, img2 = self.load_img_pair([DATA_DIR+test_img, DATA_DIR+other])
-            pairs[0].append(img1)
-            pairs[1].append(img2)
-            l = 1 if lang == lang_key else 0
-            targets.append(l)
+            pairs[0].append(img1);pairs[1].append(img2)
+            targets.append(1)
+        # different language
+        for i in range(len(batch_size) / 2):
+            # chose a language and image from lang
+            lang = np.random.choice(self.languages.keys())
+            test_img = np.random.choice(self.languages[lang])
+            # chose image from a different lang
+            diff_lang = self.pick_language(lang)
+            other = np.random.choice(self.languages[lang])
+
+            img1, img2 = self.load_img_pair([DATA_DIR+test_img, DATA_DIR+other])
+            pairs[0].append(img1); pairs[1].append(img2)
+            targets.append(0)
+
         return [np.array(pairs[0]),np.array(pairs[1])], targets
 
     def test_oneshot(self,model,batch_size,s="val",verbose=0):
         correct = 0
         for b in range(0,self.len_test):
-            inputs, targets = self.test_batch()
+            inputs, targets = self.test_batch(batch_size)
             probs = model.predict(inputs)
             pred = (probs > .5).flatten()
             correct += np.sum( targets == pred ) / float(len(probs))
@@ -134,6 +155,9 @@ class Conv_Loader:
             for t in test_index:
                 self.x_test.append(DATA_DIR+data[i_key][t])
                 self.y_test.append(lang_counter)
+
+            # remove images that will go in the test set
+            for t in test_index: del data[i_key][t]
 
             m = len(data[i_key])
             train_index = np.random.randint(0,m,size=(lang_samples))
@@ -193,7 +217,7 @@ class Conv_Loader:
 
         data,targets = [],[]
         for loc,lang in zip(locations,languages):
-            img1 = self.load_img(location)
+            img1 = self.load_img(loc)
             data.append(img1)
             targets.append(lang)
 
@@ -202,7 +226,7 @@ class Conv_Loader:
     def test_oneshot(self,model,batch_size,verbose=0):
         correct = 0
         for b in range(0,self.len_test):
-            inputs, targets = self.test_batch()
+            inputs, targets = self.test_batch(batch_size)
             probs = model.predict(inputs)
             correct += np.sum( np.argmax(targets,axis=1) == np.argmax(probs,axis=1) ) / float(len(probs))
         return correct/float(self.len_test)
