@@ -6,8 +6,16 @@ import numpy as np
 #import seaborn as sns
 from sklearn.utils import shuffle
 from keras.preprocessing.image import load_img
+from keras.preprocessing.image import ImageDataGenerator
 
 DATA_DIR = '../DataGeneration/'
+
+datagen = ImageDataGenerator(width_shift_range=0.2,
+                    height_shift_range=0.2,
+                    shear_range=0.1,
+                    zoom_range=0.2,
+                    horizontal_flip=False)
+
 class Siamese_Loader:
     """For loading batches and testing tasks to a siamese net"""
     def __init__(self,lang_samples,test_samples_per_lang=100):
@@ -84,13 +92,13 @@ class Siamese_Loader:
         pairs,targets = [[],[]],[]
         for pair in same_class:
             img1,img2 = self.load_img_pair(pair)
-            pairs[0].append(img1)
-            pairs[1].append(img2)
+            pairs[0].append(datagen.random_transform(img1))
+            pairs[1].append(datagen.random_transform(img2))
             targets.append(1)
         for pair in diff_class:
             img1,img2 = self.load_img_pair(pair)
-            pairs[0].append(img1)
-            pairs[1].append(img2)
+            pairs[0].append(datagen.random_transform(img1))
+            pairs[1].append(datagen.random_transform(img2))
             targets.append(0)
 
         return [np.array(pairs[0]),np.array(pairs[1])], targets
@@ -220,7 +228,7 @@ class Conv_Loader:
         data,targets = [],[]
         for loc,lang in zip(locations,languages):
             img1 = self.load_img(loc)
-            data.append(img1)
+            data.append(datagen.random_transform(img1))
             targets.append(lang)
 
         return np.array(data), np.array(targets)
