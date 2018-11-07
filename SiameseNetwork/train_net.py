@@ -6,7 +6,7 @@ import json
 import os
 
 SIAMESE = True
-PATIENCE = 200
+PATIENCE = 20
 batch_size = 16
 n_iter = 1000000
 best = -1
@@ -58,18 +58,23 @@ for lang_samples in range(1,1002,50):
         tmp_train_acc.append(history.history['acc'][-1])
 
         if i % evaluate_every == 0:
+            # evaluate network on test
             val_acc = loader.test_oneshot(net,batch_size,verbose=True)
-            print 'Samples',lang_samples,'Batches:',i,'Validation accuracy:',val_acc
+        
             monitor['val_acc'].append(val_acc)
             if val_acc >= best:
-                print("saving")
+                #print("saving")
                 net.save(weights_path)
                 best=val_acc
 
+            # mean of train accuracies
             train_acc = np.mean(tmp_train_acc)
             tmp_train_acc = []
             monitor['train_acc'].append(train_acc)
-            print("Iteration {}, training acc: {:.2f},".format(i,train_acc))
+
+            print("Samples: {}, Iteration: {}, Avg Training Acc: {:.2f}, Val Acc".format(
+                lang_samples,i//evaluate_every,train_acc, val_acc))
+
             # if there has been at least PATIENCE num of iterations
             if len(monitor['val_acc']) > PATIENCE:
                 # if the val acc hasnt improved in PATIENCE num of iterations
