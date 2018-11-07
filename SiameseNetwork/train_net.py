@@ -5,7 +5,7 @@ import numpy as np
 import json
 import os
 
-SIAMESE = True
+SIAMESE = False
 PATIENCE = 20
 batch_size = 16
 n_iter = 1000000
@@ -72,7 +72,7 @@ for lang_samples in range(1,1002,50):
             tmp_train_acc = []
             monitor['train_acc'].append(train_acc)
 
-            print("Samples: {}, Iteration: {}, Avg Training Acc: {:.2f}, Val Acc".format(
+            print("Samples: {}, Iteration: {}, Avg Training Acc: {:.2f}, Val Acc {:.3f}".format(
                 lang_samples,i//evaluate_every,train_acc, val_acc))
 
             # if there has been at least PATIENCE num of iterations
