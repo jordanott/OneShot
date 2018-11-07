@@ -47,7 +47,6 @@ def s_net():
     siamese_net = Model(inputs=[left_input,right_input],outputs=prediction)
 
     optimizer = Adam(0.00006)
-    #//TODO: get layerwise learning rates and momentum annealing scheme described in paperworking
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer,metrics=['accuracy'])
     return siamese_net
 

@@ -47,8 +47,11 @@ for lang_samples in range(1,1002,50):
         'val_acc': []
     }
     tmp_train_acc = []
+    # use same initialization for all trials
     net.load_weights(weights)
+
     for i in range(1, n_iter):
+        # get batch of data; images and labels
         (inputs,targets) = loader.get_batch(batch_size)
         history = net.fit(inputs,targets,verbose=0)
 
