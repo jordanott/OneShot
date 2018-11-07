@@ -30,6 +30,7 @@ class Siamese_Loader:
             for t in test_index: self.languages[i_key].append(DATA_DIR+data[i_key][t])
 
             # remove images that will go in the test set
+            test_index = sorted(test_index, reverse=True)
             for t in test_index: del data[i_key][t]
 
             for j_key in data:
@@ -157,6 +158,7 @@ class Conv_Loader:
                 self.y_test.append(lang_counter)
 
             # remove images that will go in the test set
+            test_index = sorted(test_index, reverse=True)
             for t in test_index: del data[i_key][t]
 
             m = len(data[i_key])
