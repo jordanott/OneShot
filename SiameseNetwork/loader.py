@@ -98,13 +98,13 @@ class Siamese_Loader:
     def pick_language(self, not_this_lang):
         lang = np.random.choice(self.languages.keys())
         if lang == not_this_lang:
-            return pick_language(not_this_lang)
+            return self.pick_language(not_this_lang)
         return lang
 
     def test_batch(self,batch_size):
         pairs, targets = [[],[]], []
         # same language
-        for i in range(len(batch_size) / 2):
+        for i in range(batch_size / 2):
             # chose a language
             lang = np.random.choice(self.languages.keys())
             # chose two images from the same language
@@ -115,7 +115,7 @@ class Siamese_Loader:
             pairs[0].append(img1);pairs[1].append(img2)
             targets.append(1)
         # different language
-        for i in range(len(batch_size) / 2):
+        for i in range(batch_size / 2):
             # chose a language and image from lang
             lang = np.random.choice(self.languages.keys())
             test_img = np.random.choice(self.languages[lang])
