@@ -20,12 +20,17 @@ class Siamese_Loader:
         with open(file_path,"rb") as f:
             data = json.load(f)
 
-        for i_key in data:
+        for i_key in data: # { lang_name: file_names_for_images}
             self.languages[i_key] = []
+            # num samples for that lang
             m = len(data[i_key])
+            # images that will be used for testing
             test_index = np.random.randint(0,m,size=(test_samples_per_lang))
-            for t in test_index:
-                self.languages[i_key].append(DATA_DIR+data[i_key][t])
+
+            for t in test_index: self.languages[i_key].append(DATA_DIR+data[i_key][t])
+
+            # remove images that will go in the test set
+            for t in test_index: del data[i_key][t]
 
             for j_key in data:
                 # generate images to sample
@@ -34,10 +39,10 @@ class Siamese_Loader:
                 m = len(data[j_key])
                 j_index = np.random.randint(0,m,size=(lang_samples))
                 # iterate through sampled images and pair samples
-                for i in i_index[:lang_samples]:
+                for i in i_index:
                     for j in j_index:
-                        label = 0 if i_key != j_key else 1
-                        if label:
+                        # if the languages are the same; put in same store
+                        if i_key == j_key:
                             self.data_same.append([DATA_DIR+data[i_key][i], DATA_DIR+data[j_key][j]])
                         else:
                             self.data_diff.append([DATA_DIR+data[i_key][i], DATA_DIR+data[j_key][j]])
@@ -107,7 +112,8 @@ class Siamese_Loader:
         for b in range(0,self.len_test):
             inputs, targets = self.test_batch()
             probs = model.predict(inputs)
-            correct += 1 if np.argmax(probs) == np.argmax(targets) else 0
+            pred = (probs > .5).flatten()
+            correct += np.sum( targets == pred ) / float(len(probs))
         return correct/float(self.len_test)
 
 class Conv_Loader:
