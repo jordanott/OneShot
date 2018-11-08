@@ -103,10 +103,10 @@ class Siamese_Loader:
 
         return [np.array(pairs[0]),np.array(pairs[1])], targets
 
-    def pick_language(self, not_this_lang):
+    def pick_diff_language(self, not_this_lang):
         lang = np.random.choice(self.languages.keys())
         if lang == not_this_lang:
-            return self.pick_language(not_this_lang)
+            return self.pick_diff_language(not_this_lang)
         return lang
 
     def test_batch(self,batch_size):
@@ -128,8 +128,8 @@ class Siamese_Loader:
             lang = np.random.choice(self.languages.keys())
             test_img = np.random.choice(self.languages[lang])
             # chose image from a different lang
-            diff_lang = self.pick_language(lang)
-            other = np.random.choice(self.languages[lang])
+            diff_lang = self.pick_diff_language(lang)
+            other = np.random.choice(self.languages[diff_lang])
 
             img1, img2 = self.load_img_pair([DATA_DIR+test_img, DATA_DIR+other])
             pairs[0].append(img1); pairs[1].append(img2)
