@@ -17,11 +17,9 @@ def b_init(shape,name=None):
     values=rng.normal(loc=0.5,scale=1e-2,size=shape)
     return K.variable(values,name=name)
 '''
-def s_net():
+
+def c_base():
     input_shape = (200, 200, 1)
-    left_input = Input(input_shape)
-    right_input = Input(input_shape)
-    #build convnet to use in each siamese 'leg'
     convnet = Sequential()
     convnet.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,
                        kernel_regularizer=l2(2e-4)))
@@ -36,7 +34,20 @@ def s_net():
     convnet.add(Dropout(.5))
     convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3)))
     convnet.add(Dropout(.5))
-    #call the convnet Sequential model on each of the input tensors so params will be shared
+
+    return convnet
+
+def s_net(c=None):
+    input_shape = (200, 200, 1)
+    left_input = Input(input_shape)
+    right_input = Input(input_shape)
+    #build convnet to use in each siamese 'leg'
+    
+    if c is not None:
+        convnet = c
+    else:
+        convnet = c_base()    
+
     encoded_l = convnet(left_input)
     encoded_r = convnet(right_input)
     #layer to merge two encoded inputs with the l1 distance between them
@@ -50,23 +61,14 @@ def s_net():
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer,metrics=['accuracy'])
     return siamese_net
 
-def c_net(num_languages=15):
+def c_net(num_languages=15,c=None):
     input_shape = (200, 200, 1)
     #build convnet to use in each siamese 'leg'
-    convnet = Sequential()
-    convnet.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,
-                       kernel_regularizer=l2(2e-4)))
-    convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(128,(7,7),activation='relu',
-                       kernel_regularizer=l2(2e-4)))
-    convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
-    convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4),name='last_conv'))
-    convnet.add(Flatten())
-    convnet.add(Dropout(.5))
-    convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3)))
-    convnet.add(Dropout(.5))
+    if c is not None:
+        convnet = c
+    else:
+        convnet = c_base()
+
     convnet.add(Dense(num_languages,activation='softmax'))
 
     optimizer = Adam(0.00006)
@@ -76,15 +78,17 @@ def c_net(num_languages=15):
 
 def load_from_ae(weights_path, SIAMESE=True):
     ae = ae_net()
-    if SIAMESE: model = s_net()
-    else: model = c_net()
-
+    model = c_base()
+    
     for i in range(len(ae.layers)):
+        print model.layers[i].name
         if model.layers[i].name == 'last_conv':
             break
         params = ae.layers[i].get_weights()
         if params != []:
             model.layers[i].set_weights([params[0], params[1]])
+    if SIAMESE: model = s_net(c=model)
+    else: model = c_net(c=model)
 
     return model
     
@@ -92,23 +96,24 @@ def ae_net():
     input_shape = (200, 200, 1)
     #build convnet to use in each siamese 'leg'
     autoencoder = Sequential()
-    autoencoder.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,kernel_regularizer=l2(2e-4)))
+
+    autoencoder.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,kernel_regularizer=l2(2e-4), padding='same'))
     autoencoder.add(MaxPooling2D())
-    autoencoder.add(Conv2D(128,(7,7),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(Conv2D(128,(7,7),activation='relu',kernel_regularizer=l2(2e-4), padding='same'))
     autoencoder.add(MaxPooling2D())
-    autoencoder.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4), padding='same'))
     autoencoder.add(MaxPooling2D())
-    autoencoder.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
-    autoencoder.add(MaxPooling2D())
+    autoencoder.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4), padding='same'))
+    #autoencoder.add(MaxPooling2D())
     # at this point the representation is (4, 4, 8) i.e. 128-dimensional
 
-    autoencoder.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
-    autoencoder.add(UpSampling2D())
-    autoencoder.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
-    autoencoder.add(UpSampling2D())
-    autoencoder.add(Conv2D(128,(7,7),activation='relu',kernel_regularizer=l2(2e-4)))
-    autoencoder.add(UpSampling2D())
-    autoencoder.add(Conv2D(1,(10,10),activation='sigmoid',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4), padding='same'))
+    autoencoder.add(UpSampling2D((2,2)))
+    autoencoder.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4), padding='same'))
+    autoencoder.add(UpSampling2D((2,2)))
+    autoencoder.add(Conv2D(128,(7,7),activation='relu',kernel_regularizer=l2(2e-4), padding='same'))
+    autoencoder.add(UpSampling2D((2,2)))
+    autoencoder.add(Conv2D(1,(10,10),activation='sigmoid',kernel_regularizer=l2(2e-4), padding='same'))
 
     autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
     return autoencoder

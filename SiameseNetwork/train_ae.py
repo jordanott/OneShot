@@ -18,7 +18,7 @@ def load_location(img_location):
 x_train = []
 
 ae = ae_net()
-
+print ae.summary()
 for i_key in data:
     m = len(data[i_key])
     samples = np.random.randint(0,m,size=(5000))
@@ -27,9 +27,9 @@ for i_key in data:
         img = load_location(DATA_DIR+data[i_key][i])
         x_train.append(img)
         break
-    break
+
 
 x_train = np.array(x_train)
 
-ae.fit(x_train,x_train, epochs=25, batch_size=25)
+ae.fit(x_train,x_train, epochs=500, batch_size=32)
 ae.save_weights('ae.h5')
