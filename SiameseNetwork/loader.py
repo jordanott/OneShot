@@ -10,9 +10,9 @@ from keras.preprocessing.image import ImageDataGenerator
 
 DATA_DIR = '../DataGeneration/'
 
-datagen = ImageDataGenerator(width_shift_range=0.2,
-                    height_shift_range=0.2,
-                    shear_range=0.1,
+datagen = ImageDataGenerator(width_shift_range=0.1,
+                    height_shift_range=0.1,
+                    #shear_range=0.1,
                     zoom_range=0.2,
                     horizontal_flip=False)
 
