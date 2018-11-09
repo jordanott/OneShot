@@ -1,21 +1,23 @@
 from loader import Siamese_Loader, Conv_Loader
-from model import s_net, c_net
+from model import s_net, c_net, load_from_ae
 import matplotlib.pyplot as plt
 import numpy as np
 import json
 import os
 
+LOAD_FROM_AE = True
 SIAMESE = False
 PATIENCE = 20
 batch_size = 16
 n_iter = 1000000
 best = -1
 
+
 if SIAMESE:
     with open('s_latex.txt','w') as tex:
         line = 'Language Samples & Train Same & Train Diff & Test & Val Acc & Batches \\\\\n'
         tex.write(line)
-    net = s_net()
+    net = s_net() if not LOAD_FROM_AE else load_from_ae('ae.h5',SIAMESE)
     net.save_weights('s_weights.h5')
     weights = 's_weights.h5'
     results = 'S_Results/'
@@ -23,7 +25,7 @@ else:
     with open('c_latex.txt','w') as tex:
         line = 'Language Samples & Train & Test & Val Acc & Batches \\\\\n'
         tex.write(line)
-    net = c_net()
+    net = c_net() if not LOAD_FROM_AE else load_from_ae('ae.h5',SIAMESE)
     net.save_weights('c_weights.h5')
     weights = 'c_weights.h5'
     results = 'C_Results/'
@@ -33,7 +35,7 @@ if not os.path.exists(results):
 
 for lang_samples in range(1,1002,50):
     PATH = results+str(lang_samples)+'/'
-    if not os.path.exists(PATH):    
+    if not os.path.exists(PATH):
         os.mkdir(PATH)
     evaluate_every = 100
     weights_path = PATH + weights
@@ -60,7 +62,7 @@ for lang_samples in range(1,1002,50):
         if i % evaluate_every == 0:
             # evaluate network on test
             val_acc = loader.test_oneshot(net,batch_size,verbose=True)
-        
+
             monitor['val_acc'].append(val_acc)
             if val_acc >= best:
                 #print("saving")

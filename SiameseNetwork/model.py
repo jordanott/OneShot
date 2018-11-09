@@ -1,4 +1,4 @@
-from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D,Dropout
+from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D,Dropout, UpSampling2D
 from keras.models import Model, Sequential
 from keras.regularizers import l2
 from keras import backend as K
@@ -31,7 +31,7 @@ def s_net():
     convnet.add(MaxPooling2D())
     convnet.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
     convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4),name='last_conv'))
     convnet.add(Flatten())
     convnet.add(Dropout(.5))
     convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3)))
@@ -62,7 +62,7 @@ def c_net(num_languages=15):
     convnet.add(MaxPooling2D())
     convnet.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
     convnet.add(MaxPooling2D())
-    convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4),name='last_conv'))
     convnet.add(Flatten())
     convnet.add(Dropout(.5))
     convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3)))
@@ -73,3 +73,42 @@ def c_net(num_languages=15):
     convnet.compile(loss="categorical_crossentropy",optimizer=optimizer,metrics=['accuracy'])
 
     return convnet
+
+def load_from_ae(weights_path, SIAMESE=True):
+    ae = ae_net()
+    if SIAMESE: model = s_net()
+    else: model = c_net()
+
+    for i in range(len(ae.layers)):
+        if model.layers[i].name == 'last_conv':
+            break
+        params = ae.layers[i].get_weights()
+        if params != []:
+            model.layers[i].set_weights([params[0], params[1]])
+
+    return model
+    
+def ae_net():
+    input_shape = (200, 200, 1)
+    #build convnet to use in each siamese 'leg'
+    autoencoder = Sequential()
+    autoencoder.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,kernel_regularizer=l2(2e-4)))
+    autoencoder.add(MaxPooling2D())
+    autoencoder.add(Conv2D(128,(7,7),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(MaxPooling2D())
+    autoencoder.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(MaxPooling2D())
+    autoencoder.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(MaxPooling2D())
+    # at this point the representation is (4, 4, 8) i.e. 128-dimensional
+
+    autoencoder.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(UpSampling2D())
+    autoencoder.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(UpSampling2D())
+    autoencoder.add(Conv2D(128,(7,7),activation='relu',kernel_regularizer=l2(2e-4)))
+    autoencoder.add(UpSampling2D())
+    autoencoder.add(Conv2D(1,(10,10),activation='sigmoid',kernel_regularizer=l2(2e-4)))
+
+    autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
+    return autoencoder
