@@ -19,7 +19,7 @@ def b_init(shape,name=None):
 '''
 
 def c_base():
-    input_shape = (200, 200, 1)
+    input_shape = (100, 100, 1)
     convnet = Sequential()
     convnet.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,
                        kernel_regularizer=l2(2e-4)))
@@ -42,11 +42,11 @@ def s_net(c=None):
     left_input = Input(input_shape)
     right_input = Input(input_shape)
     #build convnet to use in each siamese 'leg'
-    
+
     if c is not None:
         convnet = c
     else:
-        convnet = c_base()    
+        convnet = c_base()
 
     encoded_l = convnet(left_input)
     encoded_r = convnet(right_input)
@@ -61,8 +61,8 @@ def s_net(c=None):
     siamese_net.compile(loss="binary_crossentropy",optimizer=optimizer,metrics=['accuracy'])
     return siamese_net
 
-def c_net(num_languages=15,c=None):
-    input_shape = (200, 200, 1)
+def c_net(num_languages=2,c=None):
+    input_shape = (100, 100, 1)
     #build convnet to use in each siamese 'leg'
     if c is not None:
         convnet = c
@@ -79,7 +79,7 @@ def c_net(num_languages=15,c=None):
 def load_from_ae(weights_path, SIAMESE=True):
     ae = ae_net()
     model = c_base()
-    
+
     for i in range(len(ae.layers)):
         print model.layers[i].name
         if model.layers[i].name == 'last_conv':
@@ -91,7 +91,7 @@ def load_from_ae(weights_path, SIAMESE=True):
     else: model = c_net(c=model)
 
     return model
-    
+
 def ae_net():
     input_shape = (200, 200, 1)
     #build convnet to use in each siamese 'leg'

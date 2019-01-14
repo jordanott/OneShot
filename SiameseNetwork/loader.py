@@ -3,12 +3,15 @@ import json
 import keras
 import random
 import numpy as np
+import pandas as pd
 #import seaborn as sns
 from sklearn.utils import shuffle
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import ImageDataGenerator
 
-DATA_DIR = '../DataGeneration/'
+np.random.seed(0)
+
+DATA_DIR = '../pngPML_Jan10/'
 
 datagen = ImageDataGenerator(width_shift_range=0.1,
                     height_shift_range=0.1,
@@ -23,10 +26,33 @@ class Siamese_Loader:
         self.data_same = []
         self.data_diff = []
 
-        file_path = '../DataGeneration/data.json'
-        print("loading data from {}".format(file_path))
-        with open(file_path,"rb") as f:
-            data = json.load(f)
+        #file_path = '../DataGeneration/data.json'
+        df = pd.read_csv('../png_uml.csv')
+        data = {
+            'Class':df[df['CHART_TYPE'] == 'Class']['NAME'].values.tolist(),
+            'Sequence':df[df['CHART_TYPE'] == 'Sequence']['NAME'].values.tolist()
+        }
+        #with open(file_path,"rb") as f:
+        #    data = json.load(f)
+
+        print df.shape
+        '''
+        err = 0
+        for index, row in df.iterrows():
+            f = row['NAME']
+            try:
+                shape = np.array(load_img(DATA_DIR+f)).shape
+                if shape[0] < 100 or shape[1] < 100:
+                    df.drop(index, inplace=True)
+            except:
+                err += 1
+                df.drop(index, inplace=True)
+
+        print df.shape
+        df.to_csv('../new.csv',index=False)
+        print err
+        '''
+
 
         for i_key in data: # { lang_name: file_names_for_images}
             self.languages[i_key] = []
@@ -75,8 +101,9 @@ class Siamese_Loader:
         print '\tLength:',self.len_test
 
     def load_img_pair(self,pair):
-        img1 = np.array(load_img(pair[0]))[:,:,0].reshape(200,200,1)
-        img2 = np.array(load_img(pair[1]))[:,:,0].reshape(200,200,1)
+        print np.array(load_img(pair[0])).shape, pair[0]
+        img1 = np.array(load_img(pair[0]))[:,:,0]#.reshape(200,200,1)
+        img2 = np.array(load_img(pair[1]))[:,:,0]#.reshape(200,200,1)
         return img1/255.0,img2/255.0
 
     def get_batch(self,batch_size):
@@ -152,10 +179,21 @@ class Conv_Loader:
         self.x_train, self.y_train = [], []
         self.x_test, self.y_test = [], []
 
-        file_path = '../DataGeneration/data.json'
+        '''file_path = '../DataGeneration/data.json'
         print("loading data from {}".format(file_path))
         with open(file_path,"rb") as f:
             data = json.load(f)
+        '''
+
+        df = pd.read_csv('../new.csv')
+        data = {
+            'Class':df[df['CHART_TYPE'] == 'Class']['NAME'].values.tolist(),
+            'Sequence':df[df['CHART_TYPE'] == 'Sequence']['NAME'].values.tolist()
+        }
+        #with open(file_path,"rb") as f:
+        #    data = json.load(f)
+
+        print df.shape
 
         lang_counter = 0
         for i_key in data:
@@ -204,7 +242,12 @@ class Conv_Loader:
         print '\tLength:',self.len_test
 
     def load_img(self,img_location):
-        img = np.array(load_img(img_location))[:,:,0].reshape(200,200,1)
+
+        img = np.array(load_img(img_location))
+        if img.shape[0] > 200 and img.shape[1] > 200:
+            img = img[::2,::2,0][:100,:100].reshape(100,100,1)
+        else:
+            img = img[:100,:100,0].reshape(100,100,1)
         return img/255.0
 
     def get_batch(self,batch_size):

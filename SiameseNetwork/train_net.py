@@ -5,10 +5,10 @@ import numpy as np
 import json
 import os
 
-LOAD_FROM_AE = True
+LOAD_FROM_AE = False
 SIAMESE = False
 PATIENCE = 20
-batch_size = 16
+batch_size = 32
 n_iter = 1000000
 best = -1
 
