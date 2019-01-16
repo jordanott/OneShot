@@ -13,8 +13,7 @@ LOAD_FROM_AE = False
 SIAMESE = False
 PATIENCE = 5
 batch_size = 32
-n_iter = 1000000
-best = -1
+n_iter = 10000
 
 np.random.seed(0)
 
@@ -27,88 +26,77 @@ if SIAMESE:
     weights = 's_weights.h5'
     results = 'S_Results/'
 else:
-    with open(RESULTS_DIR+'c_latex.txt','w') as tex:
-        line = 'Language Samples & Train & Test & Val Acc & Batches P & R & F\\\\\n'
+    with open(RESULTS_DIR+'latex.txt','w') as tex:
+        line = 'Num Samples & Train & Test & Val Acc & Epochs\\\\\n'
         tex.write(line)
 
-    if 'VGG' in RESULTS_DIR: net = VGG((100,100,3),2) 
+    if 'VGG' in RESULTS_DIR: net = VGG((100,100,3),2)
     else: net = c_net() #if not LOAD_FROM_AE else load_from_ae('ae.h5',SIAMESE)
 
-    net.save_weights(RESULTS_DIR+'c_weights.h5')
-    weights = RESULTS_DIR+'c_weights.h5'
-    results = RESULTS_DIR+'C_Results/'
+    net.save_weights(RESULTS_DIR+'weights.h5')
+    weights = RESULTS_DIR+'weights.h5'
+    results = RESULTS_DIR+'Results/'
 
 if not os.path.exists(results):
     os.mkdir(results)
 
 for lang_samples in range(50,2000,250):
     PATH = results+str(lang_samples)+'/'
-    if not os.path.exists(PATH):
-        os.mkdir(PATH)
-    evaluate_every = 100
-    weights_path = PATH +'weights.h5'
+    if not os.path.exists(PATH): os.mkdir(PATH)
 
-    if SIAMESE:
-        loader = Siamese_Loader(lang_samples)
-    else:
-        loader = Conv_Loader(lang_samples)
-    monitor = {
-        'train_acc': [],
-        'val_acc': [],
-        'p':[],
-        'r':[],
-        'f':[]
-    }
-    tmp_train_acc = []
-    # use same initialization for all trials
-    net.load_weights(weights)
+    fold_info = {'fold_val_acc':[], 'epoch':[]}
 
-    for i in range(1, n_iter):
-        # get batch of data; images and labels
-        (inputs,targets) = loader.get_batch(batch_size)
-        history = net.fit(inputs,targets,verbose=0)
+    for fold in range(10):
+        print 'Fold:', fold
 
-        tmp_train_acc.append(history.history['acc'][-1])
+        FOLD_PATH = PATH+str(fold)+'/'
+        if not os.path.exists(FOLD_PATH): os.mkdir(FOLD_PATH)
 
-        if i % evaluate_every == 0:
+        weights_path = FOLD_PATH +'weights.h5'
+
+        if SIAMESE:
+            loader = Siamese_Loader(lang_samples)
+        else:
+            loader = Conv_Loader(lang_samples)
+        monitor = {'train_acc': [],'val_acc': [],'p':[],'r':[],'f':[]}
+
+        # use same initialization for all trials
+        net.load_weights(weights)
+
+        for epoch in range(1, n_iter):
+            # get batch of data; images and labels
+            (inputs,targets) = loader.get_batch(batch_size)
+            history = net.fit(inputs,targets,verbose=0)
+
             # evaluate network on test
             val_acc,p,r,f,test_percent = loader.test_oneshot(net,batch_size,verbose=True)
-            
+
             monitor['val_acc'].append(val_acc)
             monitor['p'].append(p);monitor['r'].append(r);monitor['f'].append(f)
-            if val_acc >= best:
-                #print("saving")
-                net.save(weights_path)
-                best=val_acc
+
+            # checking for best validation acc
+            if val_acc >= np.max(monitor['val_acc']): net.save(weights_path)
 
             # mean of train accuracies
-            train_acc = np.mean(tmp_train_acc)
-            tmp_train_acc = []
-            monitor['train_acc'].append(train_acc)
+            monitor['train_acc'].append(history.history['acc'][-1])
 
             print("Samples: {}, Iteration: {}, Avg Training Acc: {:.2f}, Val Acc {:.3f}, Test % {:.3f}, P {:.3f}, R {:.3f}, F {:.3f}".format(
-                lang_samples,i//evaluate_every,train_acc, val_acc, test_percent,p,r,f))
+                lang_samples,epoch,monitor['train_acc'][-1], val_acc, test_percent,p,r,f))
 
             # if there has been at least PATIENCE num of iterations
             if len(monitor['val_acc']) > PATIENCE:
                 # if the val acc hasnt improved in PATIENCE num of iterations
                 if monitor['val_acc'][-PATIENCE] == np.max(monitor['val_acc'][-PATIENCE:]):
+                    fold_info['fold_val_acc'].append(np.max(monitor['val_acc']))
+                    fold_info['epoch'].append(epoch)
                     break
 
-    with open(PATH+'data.json', 'w') as outfile:
+    with open(FOLD_PATH+'data.json', 'w') as outfile:
         json.dump(monitor, outfile)
 
-    if SIAMESE:
-        with open('s_latex.txt','a') as tex:
-            line = '{} & {} & {} & {} & {} & {} \\\\\n'.format(
-                lang_samples,len(loader.data_same),len(loader.data_diff),
-                loader.len_test,np.max(monitor['val_acc']),i
-            )
-            tex.write(line)
-    else:
-        with open(RESULTS_DIR+'c_latex.txt','a') as tex:
-            line = '{} & {} & {} & {} & {} & {} & {} & {}\\\\\n'.format(
-                lang_samples,len(loader.x_train),
-                loader.len_test,np.max(monitor['val_acc']),i, np.max(monitor['p']),np.max(monitor['r']),np.max(monitor['f'])
-            )
-            tex.write(line)
+    with open(RESULTS_DIR+'latex.txt','a') as tex:
+        line = '{} & {} & {} & {} & {} & {} & {} & {}\\\\\n'.format(
+            lang_samples,len(loader.x_train),
+            loader.len_test,np.mean(fold_info['fold_val_acc']),np.mean(fold_info['epoch'])
+        )
+        tex.write(line)

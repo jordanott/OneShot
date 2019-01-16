@@ -251,39 +251,32 @@ class Conv_Loader:
             img = img[:100,:100].reshape(100,100,3)
         return img/255.0
 
-    def get_batch(self,batch_size):
-        train_idx = np.random.choice(len(self.x_train),batch_size)
-        locations = self.x_train[train_idx]
-        languages = self.y_train[train_idx]
-
+    def get_batch(self):
         data,targets = [],[]
-        for loc,lang in zip(locations,languages):
+        for loc,lang in zip(self.x_train,self.y_train):
             img1 = self.load_img(loc)
             data.append(img1)
             targets.append(lang)
 
         return np.array(data), np.array(targets)
 
-    def test_batch(self,batch_size):
-        test_idx = np.random.choice(len(self.x_test),batch_size)
-        locations = self.x_test[test_idx]
-        languages = self.y_test[test_idx]
-
+    def test_batch(self):
         data,targets = [],[]
-        for loc,lang in zip(locations,languages):
+        for loc,lang in zip(self.x_test,self.y_test):
             img1 = self.load_img(loc)
             data.append(datagen.random_transform(img1))
             targets.append(lang)
 
         return np.array(data), np.array(targets)
 
-    def test_oneshot(self,model,batch_size,verbose=0):
-        correct = 0
-        for b in range(0,self.len_test,batch_size):
-            inputs, targets = self.test_batch(batch_size)
-            probs = model.predict(inputs)
-            correct += np.sum( np.argmax(targets,axis=1) == np.argmax(probs,axis=1) ) 
-            p,r,f,_ = precision_recall_fscore_support(np.argmax(targets,axis=1),np.argmax(probs,axis=1),average='binary')
-        total = float(batch_size * (self.len_test // batch_size + 1))
-        print correct, total             
+    def test_oneshot(self,model,verbose=0):
+        inputs, targets = self.test_batch()
+
+        probs = model.predict(inputs)
+
+        correct = np.sum( np.argmax(targets,axis=1) == np.argmax(probs,axis=1) )
+        p,r,f,_ = precision_recall_fscore_support(np.argmax(targets,axis=1),np.argmax(probs,axis=1),average='binary')
+        total = float(self.len_test)
+
+        print correct, total
         return correct/total,p,r,f, np.sum(np.argmax(self.y_test,axis=1)) / float(len(self.y_test))
