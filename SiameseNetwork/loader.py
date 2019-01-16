@@ -177,6 +177,17 @@ class Siamese_Loader:
 class Conv_Loader:
     """For loading batches and testing tasks to a siamese net"""
     def __init__(self,lang_samples,test_samples_per_lang=100):
+        self.lang_samples = lang_samples
+        self.test_samples_per_lang = test_samples_per_lang
+        self.fold_reset()
+        
+    def shuffle(self,x,y):
+        c = list(zip(x, y))
+        random.shuffle(c)
+        a, b = zip(*c)
+        return np.array(a),np.array(b)
+
+    def fold_reset(self):
         self.x_train, self.y_train = [], []
         self.x_test, self.y_test = [], []
 
@@ -191,15 +202,10 @@ class Conv_Loader:
             'Class':df[df['CHART_TYPE'] == 'Class']['NAME'].values.tolist(),
             'Sequence':df[df['CHART_TYPE'] == 'Sequence']['NAME'].values.tolist()
         }
-        #with open(file_path,"rb") as f:
-        #    data = json.load(f)
-
-        print df.shape
-
         lang_counter = 0
         for i_key in data:
             m = len(data[i_key])
-            test_index = np.random.randint(0,m,size=(test_samples_per_lang))
+            test_index = np.random.randint(0,m,size=(self.test_samples_per_lang))
             for t in test_index:
                 self.x_test.append(DATA_DIR+data[i_key][t])
                 self.y_test.append(lang_counter)
@@ -209,7 +215,7 @@ class Conv_Loader:
             for t in test_index: del data[i_key][t]
 
             m = len(data[i_key])
-            train_index = np.random.randint(0,m,size=(lang_samples))
+            train_index = np.random.randint(0,m,size=(self.lang_samples))
             for t in train_index:
                 self.x_train.append(DATA_DIR+data[i_key][t])
                 self.y_train.append(lang_counter)
@@ -222,15 +228,7 @@ class Conv_Loader:
         self.x_test = np.array(self.x_test)
         self.y_test = keras.utils.to_categorical(self.y_test, lang_counter)
 
-        self.fold_reset()
 
-    def shuffle(self,x,y):
-        c = list(zip(x, y))
-        random.shuffle(c)
-        a, b = zip(*c)
-        return np.array(a),np.array(b)
-
-    def fold_reset(self):
         self.x_train,self.y_train = self.shuffle(self.x_train,self.y_train)
         self.x_test,self.y_test = self.shuffle(self.x_test,self.y_test)
 
