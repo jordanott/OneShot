@@ -8,6 +8,7 @@ import pandas as pd
 from sklearn.utils import shuffle
 from keras.preprocessing.image import load_img
 from keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import precision_recall_fscore_support
 
 np.random.seed(0)
 
@@ -245,9 +246,9 @@ class Conv_Loader:
 
         img = np.array(load_img(img_location))
         if img.shape[0] > 200 and img.shape[1] > 200:
-            img = img[::2,::2,0][:100,:100].reshape(100,100,1)
+            img = img[::2,::2][:100,:100].reshape(100,100,3)
         else:
-            img = img[:100,:100,0].reshape(100,100,1)
+            img = img[:100,:100].reshape(100,100,3)
         return img/255.0
 
     def get_batch(self,batch_size):
@@ -278,8 +279,11 @@ class Conv_Loader:
 
     def test_oneshot(self,model,batch_size,verbose=0):
         correct = 0
-        for b in range(0,self.len_test):
+        for b in range(0,self.len_test,batch_size):
             inputs, targets = self.test_batch(batch_size)
             probs = model.predict(inputs)
-            correct += np.sum( np.argmax(targets,axis=1) == np.argmax(probs,axis=1) ) / float(len(probs))
-        return correct/float(self.len_test)
+            correct += np.sum( np.argmax(targets,axis=1) == np.argmax(probs,axis=1) ) 
+            p,r,f,_ = precision_recall_fscore_support(np.argmax(targets,axis=1),np.argmax(probs,axis=1),average='binary')
+        total = float(batch_size * (self.len_test // batch_size + 1))
+        print correct, total             
+        return correct/total,p,r,f, np.sum(np.argmax(self.y_test,axis=1)) / float(len(self.y_test))

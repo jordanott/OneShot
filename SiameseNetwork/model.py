@@ -1,9 +1,10 @@
-from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D,Dropout, UpSampling2D
+from keras.layers import Input, Conv2D, Lambda, merge, Dense, Flatten,MaxPooling2D,Dropout, UpSampling2D, GlobalAveragePooling2D
 from keras.models import Model, Sequential
 from keras.regularizers import l2
 from keras import backend as K
 from keras.optimizers import SGD,Adam
 from keras.losses import binary_crossentropy
+from keras.applications.vgg16 import VGG16
 
 '''
 import numpy.random as rng
@@ -19,7 +20,7 @@ def b_init(shape,name=None):
 '''
 
 def c_base():
-    input_shape = (100, 100, 1)
+    input_shape = (100, 100, 3)
     convnet = Sequential()
     convnet.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,
                        kernel_regularizer=l2(2e-4)))
@@ -30,8 +31,9 @@ def c_base():
     convnet.add(Conv2D(128,(4,4),activation='relu',kernel_regularizer=l2(2e-4)))
     convnet.add(MaxPooling2D())
     convnet.add(Conv2D(256,(4,4),activation='relu',kernel_regularizer=l2(2e-4),name='last_conv'))
-    convnet.add(Flatten())
+    #convnet.add(Flatten())
     convnet.add(Dropout(.5))
+    convnet.add(GlobalAveragePooling2D())
     convnet.add(Dense(4096,activation="sigmoid",kernel_regularizer=l2(1e-3)))
     convnet.add(Dropout(.5))
 
@@ -117,3 +119,24 @@ def ae_net():
 
     autoencoder.compile(optimizer='adadelta', loss='binary_crossentropy')
     return autoencoder
+
+def VGG(input_shape,num_classes):
+    input_tensor = Input(shape=input_shape)
+    base_model = VGG16(input_tensor=input_tensor, include_top=False, weights='imagenet')
+
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    #x = Dense(1024, activation='relu')(x)
+    # output layer with 'num_classes' number of catergories
+    predictions = Dense(num_classes, activation='softmax')(x)
+
+    # this is the model we will train
+    model = Model(inputs=base_model.input, outputs=predictions)
+
+    # freeze pretrained layers
+    for layer in base_model.layers:
+        layer.trainable = True
+
+    # compile the model (should be done *after* setting layers to non-trainable)
+    model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])
+    return model
