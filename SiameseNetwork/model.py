@@ -20,7 +20,7 @@ def b_init(shape,name=None):
 '''
 
 def c_base():
-    input_shape = (100, 100, 3)
+    input_shape = (250, 250, 3)
     convnet = Sequential()
     convnet.add(Conv2D(64,(10,10),activation='relu',input_shape=input_shape,
                        kernel_regularizer=l2(2e-4)))

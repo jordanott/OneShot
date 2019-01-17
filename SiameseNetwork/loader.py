@@ -38,20 +38,7 @@ class Siamese_Loader:
 
         print df.shape
         '''
-        err = 0
-        for index, row in df.iterrows():
-            f = row['NAME']
-            try:
-                shape = np.array(load_img(DATA_DIR+f)).shape
-                if shape[0] < 100 or shape[1] < 100:
-                    df.drop(index, inplace=True)
-            except:
-                err += 1
-                df.drop(index, inplace=True)
 
-        print df.shape
-        df.to_csv('../new.csv',index=False)
-        print err
         '''
 
 
@@ -177,10 +164,26 @@ class Siamese_Loader:
 class Conv_Loader:
     """For loading batches and testing tasks to a siamese net"""
     def __init__(self,lang_samples,test_samples_per_lang=100):
+        '''df = pd.read_csv('../png_uml.csv')
+        err = 0
+        for index, row in df.iterrows():
+            f = row['NAME']
+            try:
+                shape = np.array(load_img(DATA_DIR+f)).shape
+                if shape[0] < 250 or shape[1] < 250:
+                    df.drop(index, inplace=True)
+            except:
+                err += 1
+                df.drop(index, inplace=True)
+
+        print df.shape
+        df.to_csv('../new.csv',index=False)
+        print err'''
+
         self.lang_samples = lang_samples
         self.test_samples_per_lang = test_samples_per_lang
         self.fold_reset()
-        
+
     def shuffle(self,x,y):
         c = list(zip(x, y))
         random.shuffle(c)
@@ -190,12 +193,6 @@ class Conv_Loader:
     def fold_reset(self):
         self.x_train, self.y_train = [], []
         self.x_test, self.y_test = [], []
-
-        '''file_path = '../DataGeneration/data.json'
-        print("loading data from {}".format(file_path))
-        with open(file_path,"rb") as f:
-            data = json.load(f)
-        '''
 
         df = pd.read_csv('../new.csv')
         data = {
@@ -240,14 +237,13 @@ class Conv_Loader:
         print 'Testing set'
         print '\tLength:',self.len_test
 
-    def load_img(self,img_location):
-
+    def load_img(self,img_location, dim=250):
         img = np.array(load_img(img_location))
-        if img.shape[0] > 200 and img.shape[1] > 200:
-            x = img.shape[0] // 100; y = img.shape[1] // 100
-            img = img[::x,::y][:100,:100].reshape(100,100,3)
+        if img.shape[0] > dim*2 and img.shape[1] > dim*2:
+            x = img.shape[0] // dim; y = img.shape[1] // dim
+            img = img[::x,::y][:dim,:dim].reshape(dim,dim,3)
         else:
-            img = img[:100,:100].reshape(100,100,3)
+            img = img[:dim,:dim].reshape(dim,dim,3)
         return img/255.0
 
     def get_batch(self):
