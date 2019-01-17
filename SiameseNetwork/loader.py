@@ -244,7 +244,8 @@ class Conv_Loader:
 
         img = np.array(load_img(img_location))
         if img.shape[0] > 200 and img.shape[1] > 200:
-            img = img[::2,::2][:100,:100].reshape(100,100,3)
+            x = img.shape[0] // 100; y = img.shape[1] // 100
+            img = img[::x,::y][:100,:100].reshape(100,100,3)
         else:
             img = img[:100,:100].reshape(100,100,3)
         return img/255.0

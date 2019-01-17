@@ -135,7 +135,7 @@ def VGG(input_shape,num_classes):
 
     # freeze pretrained layers
     for layer in base_model.layers:
-        layer.trainable = True
+        layer.trainable = False
 
     # compile the model (should be done *after* setting layers to non-trainable)
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy',metrics=['accuracy'])

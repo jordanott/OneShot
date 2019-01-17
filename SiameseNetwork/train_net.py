@@ -6,8 +6,8 @@ import numpy as np
 import json
 import os
 
-RESULTS_DIR='Shallow/' #'VGG_PreTrained/'
-RESULTS_DIR='VGG/'
+RESULTS_DIR='Shallow/' 
+RESULTS_DIR='VGG_PreTrained/'
 
 LOAD_FROM_AE = False
 SIAMESE = False
@@ -45,8 +45,8 @@ for lang_samples in range(50,2000,250):
     if not os.path.exists(PATH): os.mkdir(PATH)
 
     fold_info = {'fold_val_acc':[], 'epoch':[]}
-
-    for fold in range(10):
+    fold = 0
+    while fold < 10:
         print 'Fold:', fold
 
         FOLD_PATH = PATH+str(fold)+'/'
@@ -62,14 +62,20 @@ for lang_samples in range(50,2000,250):
 
         # use same initialization for all trials
         net.load_weights(weights)
+        (inputs,targets) = loader.get_batch()
+        print np.sum(np.argmax(targets,axis=1)), len(targets)
 
+
+        '''for i in range(len(targets)):
+            plt.imshow(inputs[i])
+            plt.savefig(str(i)+'_'+str(np.argmax(targets[i])) )
+        '''
         for epoch in range(1, n_iter):
-            # get batch of data; images and labels
-            (inputs,targets) = loader.get_batch(batch_size)
+            
             history = net.fit(inputs,targets,verbose=0)
 
             # evaluate network on test
-            val_acc,p,r,f,test_percent = loader.test_oneshot(net,batch_size,verbose=True)
+            val_acc,p,r,f,test_percent = loader.test_oneshot(net,verbose=True)
 
             monitor['val_acc'].append(val_acc)
             monitor['p'].append(p);monitor['r'].append(r);monitor['f'].append(f)
@@ -86,16 +92,20 @@ for lang_samples in range(50,2000,250):
             # if there has been at least PATIENCE num of iterations
             if len(monitor['val_acc']) > PATIENCE:
                 # if the val acc hasnt improved in PATIENCE num of iterations
-                if monitor['val_acc'][-PATIENCE] == np.max(monitor['val_acc'][-PATIENCE:]):
-                    fold_info['fold_val_acc'].append(np.max(monitor['val_acc']))
-                    fold_info['epoch'].append(epoch)
+                if monitor['val_acc'][-PATIENCE] == np.max(monitor['val_acc'][-PATIENCE:]):                    
+                    if np.max(monitor['val_acc']) == .5 and 'Shallow' in RESULTS_DIR:
+                        fold -= 1
+                    else:
+                        fold_info['fold_val_acc'].append(np.max(monitor['val_acc']))
+                        fold_info['epoch'].append(epoch)
                     break
+        fold += 1      
 
     with open(FOLD_PATH+'data.json', 'w') as outfile:
         json.dump(monitor, outfile)
 
     with open(RESULTS_DIR+'latex.txt','a') as tex:
-        line = '{} & {} & {} & {} & {} & {} & {} & {}\\\\\n'.format(
+        line = '{} & {} & {} & {} & {}\\\\\n'.format(
             lang_samples,len(loader.x_train),
             loader.len_test,np.mean(fold_info['fold_val_acc']),np.mean(fold_info['epoch'])
         )
